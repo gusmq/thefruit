@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>3D Cube Points</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: black; }
+   #infoBox {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 14px;
+  background: rgba(0,0,0,0.80);
+  color: white;
+  font-family: sans-serif;
+  display: none;
+
+  width: 360px;        /* <- bigger */
+  max-height: 320px;   /* <- limits height so it doesn’t cover the whole screen */
+  overflow-y: auto;    /* <- enables scrolling for long poems */
+
+  border-radius: 10px;
+  line-height: 1.35;
+  white-space: pre-wrap; /* <- IMPORTANT: keeps line breaks */
+}
+
+  </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+        "three/examples/jsm/controls/OrbitControls.js": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/controls/OrbitControls.js"
+      }
+    }
+  </script>
+
+</head>
+<body>
+
+<div id="instructionBox">
+  <strong>The Fruit</strong><br>
+  by August Mercado-Quinn<br><br>
+  The Fruit is a self-portrait. It is a mosaic of the forty two Quotations that I hold inmost. It is a ripe, personal confession. Savor its sweet wisdom.<br><br>
+  <strong>Click points to reveal Quotations</strong>
+</div>
+
+<div id="infoBox"></div>
+<canvas id="c"></canvas>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>3D Polyhedron Points</title>
+
+  <style>
+    body { margin: 0; overflow: hidden; background: black; }
+
+    #infoBox {
+      position: absolute;
+      max-width: 350px;
+      padding: 12px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      font-family: serif;
+      font-size: 14px;
+      line-height: 1.4;
+      border-radius: 10px;
+      display: none;
+      white-space: pre-wrap; /* ⭐ CRITICAL for line breaks */
+    }
+
+#instructionBox {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px 24px;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  font-family: sans-serif;
+  font-size: 14px;
+  max-width: 320px;
+  border-radius: 10px;
+  text-align: center;
+  z-index: 10;
+}
+
+  </style>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+      "three/examples/jsm/controls/OrbitControls.js":
+        "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/controls/OrbitControls.js"
+    }
+  }
+  </script>
+</head>
+
+<body>
+<div id="infoBox"></div>
+<canvas id="c"></canvas>
+
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
+/* =====================================================
+   CUSTOM TEXT PER VERTEX
+   USE BACKTICKS ` ` FOR MULTI-LINE TEXT
+   ===================================================== */
+const vertexLabels = [
+
+`Mirror
+by Sylvia Plath
+
+I am silver and exact. I have no preconceptions.
+Whatever I see I swallow immediately
+Just as it is, unmisted by love or dislike.
+I am not cruel, only truthful‚
+The eye of a little god, four-cornered.
+Most of the time I meditate on the opposite wall.
+It is pink, with speckles. I have looked at it so long
+I think it is part of my heart. But it flickers.
+Faces and darkness separate us over and over.
+
+Now I am a lake. A woman bends over me,
+Searching my reaches for what she really is.
+Then she turns to those liars, the candles or the moon.
+I see her back, and reflect it faithfully.
+She rewards me with tears and an agitation of hands.
+I am important to her. She comes and goes.
+Each morning it is her face that replaces the darkness.
+In me she has drowned a young girl, and in me an old woman
+Rises toward her day after day, like a terrible fish.`,
+
+`The Handmaid's Tale
+by Margaret Atwood
+
+I sink down into my body as into a swamp, fenland, where only I know the footing. Treacherous ground, my own territory. I become the earth I set my ear against, for rumors of the future. Each twinge, each murmur of slight pain, ripples of sloughed-off matter, swellings and diminishings of tissue, the droolings of the flesh, these are signs, these are the things I need to know about. Each month I watch for blood, fearfully, for when it comes it means failure. I have failed once again to fulfill the expectations of others, which have become my own. I used to think of my body as an instrument, of pleasure, or a means of transportation, or an implement for the accomplishment of my will. I could use it to run, push buttons of one sort or another, make things happen. There were limits, but my body was nevertheless lithe, single, solid, one with me. Now the flesh arranges itself differently. I’m a cloud, congealed around a central object, the shape of a pear, which is hard and more real than I am and glows red within its translucent wrapping. Inside it is a space, huge as the sky at night and dark and curved like that, though black-red rather than black. Pinpoints of light swell, sparkle, burst and shrivel within it, countless as stars. Every month there is a moon, gigantic, round, heavy, an omen. It transits, pauses, continues on and passes out of sight, and I see despair coming towards me like famine. To feel that empty, again, again. I listen to my heart, wave upon wave, salty and red, continuing on and on, marking time.`,
+
+`Get Drunk
+by Charles Baudelaire
+
+Il faut être toujours ivre. Tout est là: c’est l’unique question. Pour ne pas sentir l’horrible fardeau du Temps qui brise vos épaules et vous penche vers la terre, il faut vous enivrer sans trêve.
+Mais de quoi? De vin, de poésie, ou de vertu, à votre guise. Mais enivrez-vous. Et si quelquefois, sur les marches d’un palais, sur l’herbe verte d’un fossé, dans la solitude morne de votre chambre, vous vous réveillez, l’ivresse déjà diminuée ou disparue, demandez au vent, à la vague, à l’étoile, à l’oiseau, à l’horloge, à tout ce qui fuit, à tout ce qui gémit, à tout ce qui roule, à tout ce qui chante, à tout ce qui parle, demandez quelle heure il est; et le vent, la vague, l’étoile, l’oiseau, l’horloge, vous répondront: « Il est l’heure de s’enivrer! Pour n’être pas les esclaves martyrisés du Temps, enivrez-vous; enivrez-vous sans cesse! De vin, de poésie ou de vertu, à votre guise.
+
+One should always be drunk. That's the great thing; the only question. Not to feel the horrible burden of Time weighing on your shoulders and bowing you to the earth, you should be drunk without respite.
+Drunk with what? With wine, with poetry, or with virtue, as you please. But get drunk.
+And if sometimes you should happen to awake, on the stairs of a palace, on the green grass of a ditch, in the dreary solitude of your own room, and find that your drunkenness is ebbing or has vanished, ask the wind and the wave, ask star, bird, or clock, ask everything that flies, everything that moans, everything that flows, everything that sings, everything that speaks, ask them the time; and the wind, the wave, the star, the bird and the clock will all reply: "It is Time to get drunk! If you are not to be the martyred slaves of Time, be perpetually drunk! With wine, with poetry, or with virtue, as you please.`,
+
+`The Bad Glazier
+by Charles Baudelaire
+
+Mais qu'importe l'éternité de la damnation à qui a trouvé dans une seconde l'infini de la jouissance!
+
+But what is an eternity of damnation compared to an infinity of pleasure in a single second?`,
+
+`Heart of Darkness
+by Joseph Conrad
+
+And then I made a brusque movement, and one of the remaining posts of that vanished fence leaped up in the field of my glass. You remember I told you I had been struck at the distance by certain attempts at ornamentation, rather remarkable in the ruinous aspect of the place. Now I had suddenly a nearer view, and its first result was to make me throw my head back as if before a blow. Then I went carefully from post to post with my glass, and I saw my mistake. These round knobs were not ornamental but symbolic; they were expressive and puzzling, striking and disturbing – food for thought that also for the vultures if there had been any looking down from the sky, but at all events for such ants as were industrious enough to ascend the pole. They would have been even more impressive, those heads on the stakes, if their faces had not been turned to the house. Only one, the first I had made out, was facing my way. I was not so shocked as you may think. The start back I had given was really nothing but a movement of surprise. I had expected to see a knob of wood there, you know. I returned deliberately to the first I had seen – and there it was, black, dried, sunken, with closed eyelids – a head that seemed to sleep at the top of the pole, and with the shrunken dry lips showing a narrow white line of the teeth, was smiling too, smiling continuously at some endless and jocose dream of that eternal slumber.`,
+
+`One Art
+by Elizabeth Bishop
+
+The art of losing isn’t hard to master;
+so many things seem filled with the intent
+to be lost that their loss is no disaster.
+
+Lose something every day. Accept the fluster
+of lost door keys, the hour badly spent.
+The art of losing isn’t hard to master.
+
+Then practice losing farther, losing faster:
+places, and names, and where it was you meant
+to travel. None of these will bring disaster.
+
+I lost my mother’s watch. And look! my last, or
+next-to-last, of three loved houses went.
+The art of losing isn’t hard to master.
+
+I lost two cities, lovely ones. And, vaster,
+some realms I owned, two rivers, a continent.
+I miss them, but it wasn’t a disaster.
+
+—Even losing you (the joking voice, a gesture
+I love) I shan’t have lied. It’s evident
+the art of losing’s not too hard to master
+though it may look like (Write it!) like disaster.`,
+
+``,
+
+`Soledad y el Mar
+por Natalia Lafourcade
+
+En el canto de las olas
+Encontré un rumor de luz
+Por un canto de gaviotas
+Supe que allí estabas tú
+
+Despidiendo últimamente
+Todo lo que sucedió
+Hoy, saludo mi presente
+Y gusto de este dulce adiós
+
+Voy a navegar en tu puerto azul
+Quisiera saber de dónde vienes tú
+Vamos a dejar que el tiempo pare
+Ver nuestros recuerdos en los mares
+Y esta soledad tan profunda...
+
+Que en el canto de las olas
+Me quisiera sumergir
+Embriagándome en su aroma
+Algo nuevo descubrir
+
+Voy a navegar en tu puerto azul
+Quisiera saber de dónde vienes tú
+Vamos a dejar que el tiempo pare
+Ver nuestros recuerdos en los mares
+Y esta soledad tan profunda...
+
+Que me cante el mar
+Un bolero de soledad
+Que me cante el mar
+Que ando sola, con soledad
+
+Que me cante el mar
+Un bolero de soledad
+Que me cante el mar
+Que ando sola, con soledad
+
+Soledad y el mar`,
+
+`No Name #3
+by Elliot Smith
+
+We arrived too late
+Our mouths were opening
+I turned off the light
+So, come on, night
+
+You're a witness, you
+You've seen me interrupt
+A good, old-fashioned fight
+So, come on, night
+
+Everyone is gone
+Home to oblivion
+Home to oblivion
+Home to oblivion
+
+Watched the dying day
+Blushing in the sky
+Everyone is uptight
+So, come on, night
+
+Everyone is gone
+Home to oblivion
+Home to oblivion
+Home to oblivion
+Home to oblivion
+
+I know we're not
+Illegitimate
+In our hearing
+So, come on
+So, come on, night`,
+
+`Never Let Me Go
+by Kazuo Ishiguro
+
+"I keep thinking about this river somewhere, with the water moving really fast. And these two people in the water, trying to hold onto each other, holding on as hard as they can, but in the end it's just too much. The current's too strong. They've got to let go, drift apart. That's how I think it is with us. It's a shame, Kath, because we've loved each other all our lives. But in the end, we can't stay together forever."
+
+I found I was standing before acres of ploughed earth. There was a fence keeping me from stepping into the field, with two lines of barbed wire, and I could see how this fence and the cluster of three or four trees above me were the only things breaking the wind for miles. All along the fence, especially along the lower line of wire, all sorts of rubbish had caught and tangled. It was like the debris you get on a sea-shore: the wind must have carried some of it for miles and miles before finally coming up against these trees and these two lines of wire. Up in the branches of the trees, too, I could see, flapping about, torn plastic sheeting and bits of old carrier bags. That was the only time, as I stood there, looking at that strange rubbish, feeling the wind coming across those empty fields, that I started to imagine just a little fantasy thing, because this was Norfolk after all, and it was only a couple of weeks since I’d lost him. I was thinking about the rubbish, the flapping plastic in the branches, the shore-line of odd stuff caught along the fencing, and I half-closed my eyes and imagined this was the spot where everything I’d ever lost since my childhood had washed up, and I was now standing here in front of it, and if I waited long enough, a tiny figure would appear on the horizon across the field, and gradually get larger until I’d see it was Tommy, and he’d wave, maybe even call. The fantasy never got beyond that—I didn’t let it—and though the tears rolled down my face, I wasn’t sobbing or out of control. I just waited a bit, then turned back to the car, to drive off to wherever it was I was supposed to be.`,
+
+`The Ice Palace
+by Tarjei Vesaas
+
+Gleams and radiance, gleaming from you to me, from me to you, and from me to you alone – into the mirror and out again, and never an answer about what this is, never an explanation… It's ourselves! We can do nothing about it, it's as if it comes from another world, flows out to the edges, collects itself, not it doesn't.
+
+A blinding flood of light. Unn had lost all ties with everything but light. The staring eye had burned up: everything was light.
+
+They were not ready to go. The ice palace still held them. Their eyes still glittered.`,
+
+`Hamlet
+by William Shakespeare
+
+There are more things in heaven and earth, Horatio, than are dreamt of in your philosophy.
+
+He raised a sigh so piteous and profound as it did seem to shatter all his bulk and end his being.
+
+I am justly killed with mine own treachery.`,
+
+`Go Tell It on the Mountain
+by James Baldwin
+
+The tambourines raced to fill the vacuum left by his silent piano, and his cry drew answering cries. Then he was on his feet, turning, blind, his face congested, contorted with this rage, and the muscles leaping and swelling in his long, dark neck. It seemed that he could not breathe, that his body could not contain this passion, that he would be, before their eyes, dispersed into the waiting air.
+
+"You was born wild, and you's going to die wild."
+
+My soul is a witness for my Lord. There was an awful silence at the bottom of John's mind, a dreadful weight, a dreadful speculation. And not even a speculation, but a deep, deep turning, as of something huge, black, shapeless, for ages dead on the ocean floor, that now felt its rest disturbed by a faint, far wind, which bit it: "Arise." And this weight began to move at the bottom of John's mind, in a silence like the silence of the void before creation, and he began to feel a terror he had never felt before.
+
+And he fell against the tree, sinking to the ground and clutching the roots of the tree. He had shouted in silence and only silence answered – and yet, when he cried, his cry had caused a ringing to the outermost limits of the earth. This ringing, his lone cry rolling through creation, frightening the sleeping fish and foul, awakening echoes everywhere, river, and valley, and mountain wall, caused in him a fear so great that he lay for a moment silent and trembling at the base of the tree, as though he wished to be buried there. But that burdened heart of his would not be still, would not let him keep silence – would not let him breathe until he cried again. And so he cried again; and his cry returned again; and still the silence waited for God to speak.
+
+His mind was like the sea itself; troubled, and too deep for the bravest man's descent, throwing up now and again, for the naked eye to wonder at, treasure and debris long forgotten on the bottom – bones and jewels, fantastic shells, jelly that had once been flesh, pearls that had once been eyes. And he was at the mercy of this sea, hanging there with darkness all around him.`,
+
+`Pride and Prejudice
+by Jane Austen
+
+"The more I see of the world, the more am I dissatisfied with it; and every day confirms my belief of the inconsistency of all human characters."
+
+Till this moment, I never knew myself.
+
+And never had she so honestly felt that she could have loved him, as now, when all love must be vain.
+
+"I do, I do like him," she replied, with tears in her eyes, "I love him. Indeed he has no improper pride. He is perfectly amiable. You do not know what he really is; then pray do not pain me by speaking of him in such terms."`,
+
+`Annie John
+by Jamaica Kincaid
+
+She seemed such a shameful thing, a girl whose mother had died and left her alone in the world.
+
+One morning, though, he overslept, because his grandmother didn't wake him up. When he awoke, she was lying next to him. When he tried to wake her, he couldn't. She had died lying next to him sometime during the night. Even though he was overcome with grief, he built her coffin and made sure she had a nice funeral. He never slept in that bed again, and shortly afterward he moved out of that house. He was eighteen years old then.
+
+Nothing, nothing, just sitting on our tombstones forever.
+
+I could only just sit and look at myself, feeling like the oldest person who had ever lived and who had not learned a single thing.
+
+As my heels bumped up against the trunk, my heart just broke, and I cried and cried. At that moment, I missed my mother more than I had ever imagined possible and wanted only to live somewhere quiet and beautiful with her alone, but also at that moment I wanted only to see her lying dead, all withered and in a coffin at my feet.`,
+
+`The Memory Police
+by Yoko Ogawa
+
+"A heart has no shape, no limits. That's why you can put almost any kind of thing in it, why it can hold so much. It's much like your memory, in that sense."
+
+"I sometimes wonder what I'd see if I could hold your heart in my hands," I told him. "I imagine it fitting perfectly in my palms, soft and slippery, like gelatin that hasn't quite set. It might wobble at the slightest touch, but I sense I'd need to hold it carefully, so it wouldn't slip through my fingers. I also imagine the warmth of the thing. It's usually hidden deep inside, so it's much warmer than the rest of me. I close my eyes and sink into that warmth, and when I do, the sensations of all the things that have disappeared come back to me. I can feel all the things you remember, there in my hands. Doesn't that sound marvelous?
+
+"The new cavities in my heart search for things to burn. They drive me to burn things and I can stop only when everything is in ashes."
+
+In the past few days I've begun to feel my body growing more distant from my soul. It's as though my head and arms, my breasts and torso and legs are all floating somewhere just out of reach, and I can only watch as he plays with them. And that, too, is because I have lost my voice. When the voice that links the body to the soul vanishes, there is no way to put into words one's feelings or will. I am reduced to pieces in no time at all.
+
+"That's right. Apparently no one blames you for lying in a novel. You can make up the story out of nothing, starting from zero. You can write about something you can't see as though you can see it. You can make up something that doesn't exist just by using words."
+
+"Do you really have to go?" He asked, gathering to his chest the air he held in his hands. "Good-bye…" The last traces of my voice were frail and hoarse. "Good-bye."`,
+
+`Brooklyn
+by Colm Toibin
+
+His saying that he loved her and his expecting a reply frightened her, made her feel that she would have to accept that this was the only life she was going to have, a life spent away from home.
+
+She could not imagine Rose lying dead; she had thought of her as asleep and being laid out like someone was sleeping but now she had to think of her like stone, all the life gone out of her, and her dosed in the coffin, all changed and changing and gone from them.
+
+It made her feel strangely as though she were two people, one who had battled against two cold winters and many hard days in Brooklyn and fallen in love there, and the other who was her mother's daughter, the Eilis whom everyone knew, or thought they knew.
+
+And she saw all three of them – Tony, Jim, her mother – as figures whom she could only damage, as innocent people surrounded by light and clarity, and curling around them was herself, dark, uncertain.`,
+
+`Fear and Loathing in Las Vegas
+by Hunter S. Thompson
+
+"I want you to know that we're on our way to Las Vegas to find the American Dream."
+
+Old elephants limp off to the hills to die; old Americans go out to the highway and drive themselves to death with huge cars.
+
+Turn up the radio. Turn up the tape machine. Look into the sunset up ahead. Roll the windows down for a better taste of the cool desert win. Ah yes. This is what it's all about. Total control now. Tooling along the main drag on a Saturday night in Las Vegas, two good old boys in a real convertible… Stoned, ripped, twisted… Good People.
+
+In a closed society where everybody's guilty, the only crime is getting caught. In a world of thieves, the only final sin is stupidity.
+
+Jesus Creeping God! Is there a priest in this tavern? I want to confess! I'm a fucking sinner! Venal, mortal, carnal, major, minor – however you want to call it. Lorde… I'm guilty.
+
+"Sacrifice… sacrifice… sacrifice…"`,
+
+`Against Interpretation
+by Susan Sontag
+
+Once upon a time (a time when high art was scarce), it must have been a revolutionary and creative move to interpret works of art. Now it is not. What we decidedly do not need now is to assimilate Art into Thought, or (worse yet) Art into Culture.
+
+Interpretation takes the sensory experience of the work of art for granted, and proceeds from there. This cannot be taken for granted, now.`,
+
+`The Analects of Confucius
+by the Disciples of Confucius
+
+1.9 Devote care to life’s end and pursue respect for the distant dead; in this way, the virtue of the people will return to fullness. 
+
+4.18 The Master said, When you see a worthy, think of becoming equal to him; when you see an unworthy person, survey yourself within
+
+The junzi’s stance towards the world is this: there is nothing he insists on, nothing he refuses, he simply aligns himself beside right.`,
+
+`Nicomachean Ethics
+by Aristotle
+
+Every skill and every inquiry, and similarly every action and rational choice, is thought to aim at some good; and so the good had been aptly described as that at which everything aims.`,
+
+`Second Discourse
+by Jean-Jacques Rousseau
+
+Who said man is born free and everywhere he is in chains.
+
+Finally, I would prove that is one sees a handful of powerful and rich men at the height of greatness and fortune while the mob grovels in obscurity and misery, it is because the former prize the things they enjoy only to the extent that the others are deprived of them; and because, without changing their position, they would cease to be happy, if the people ceased to be miserable.`,
+
+`Nietzsche Collected Quotations
+by Friedrich Nietzsche
+
+God is dead.
+
+To demand that strength does not express itself as strength, that it must not consist of a will to overpower, a will to throw down, a will to rule, a thirst for enemies and opposition and triumph—that is as unreasonable as to demand that weakness express itself as strength.
+
+Consequently, only with the setting up of the law is there a "just" and "unjust”…. To talk of just and unjust in themselves has no sense whatsoever—it's obvious that in themselves harming, oppressing, exploiting, destroying cannot be "unjust," insofar as life essentially works that way, that is, in its basic functions it harms, oppresses, exploits, and destroys—and cannot be conceived at all without these characteristics…`,
+
+`The Stranger Persistence of Guilt
+by Wilfred M. McClay
+
+Yet forgiveness rightly understood can never deny the reality of justice. To forgive, whether one forgives trespasses or debts, means abandoning the just claims we have against others, in the name of the higher ground of love. Forgiveness affirms justice even in the act of suspending it. It is rare because it is so costly… forgiveness is in danger of being debased into a kind of cheap grace, a waiving of standards entirely, standards without which such transactions have little or no moral significance.
+
+We like to speak, romantically, of the interconnectedness of all things, failing to recognize that this same principle means that there is almost nothing for which we cannot be, in some way, held responsible… Power entails responsibility, and responsibility leads to guilt.`,
+
+`The Colonel
+by Carolyn Forche
+
+What you have heard is true. I was in his house. His wife carried a tray of coffee and sugar. His daughter filed her nails, his son went out for the night. There were daily papers, pet dogs, a pistol on the cushion beside him. The moon swung bare on its black cord over the house. On the television was a cop show. It was in English. Broken bottles were embedded in the walls around the house to scoop the kneecaps from a man's legs or cut his hands to lace. On the windows there were gratings like those in liquor stores. We had dinner, rack of lamb, good wine, a gold bell was on the table for calling the maid. The maid brought green mangoes, salt, a type of bread. I was asked how I enjoyed the country. There was a brief commercial in Spanish. His wife took everything away. There was some talk of how difficult it had become to govern. The parrot said hello on the terrace. The colonel told it to shut up, and pushed himself from the table. My friend said to me with his eyes: say nothing. The colonel returned with a sack used to bring groceries home. He spilled many human ears on the table. They were like dried peach halves. There is no other way to say this. He took one of them in his hands, shook it in our faces, dropped it into a water glass. It came alive there. I am tired of fooling around he said. As for the rights of anyone, tell your people they can go f--- themselves. He swept the ears to the floor with his arm and held the last of his wine in the air. Something for your poetry, no? he said. Some of the ears on the floor caught this scrap of his voice. Some of the ears on the floor were pressed to the ground.`,
+
+`#712
+by Emily Dickinson
+
+Because I could not stop for Death –
+He kindly stopped for me –
+The Carriage held but just Ourselves –
+And Immortality.
+
+We slowly drove – He knew no haste
+And I had put away
+My labor and my leisure too,
+For His Civility –
+
+We passed the School, where Children strove
+At Recess – in the Ring –
+We passed the Fields of Gazing Grain –
+We passed the Setting Sun –
+
+Or rather – He passed us –
+The Dews drew quivering and chill –
+For only Gossamer, my Gown –
+My Tippet – only Tulle –
+
+We paused before a House that seemed
+A Swelling of the Ground –
+The Roof was scarcely visible –
+The Cornice – in the Ground –
+
+Since then – 'tis Centuries – and yet
+Feels shorter than the Day
+I first surmised the Horses' Heads
+Were toward Eternity –`,
+
+`Sonnet 130: My mistress' eyes are nothing like the sun
+by William Shakespeare
+
+My mistress' eyes are nothing like the sun;
+Coral is far more red than her lips' red;
+If snow be white, why then her breasts are dun;
+If hairs be wires, black wires grow on her head.
+I have seen roses damasked, red and white,
+But no such roses see I in her cheeks;
+And in some perfumes is there more delight
+Than in the breath that from my mistress reeks.
+I love to hear her speak, yet well I know
+That music hath a far more pleasing sound;
+I grant I never saw a goddess go;
+My mistress, when she walks, treads on the ground.
+   And yet, by heaven, I think my love as rare
+   As any she belied with false compare.`,
+
+`Mad Girl’s Love Song
+by Sylvia Plath
+
+I shut my eyes and all the world drops dead;
+I lift my lids and all is born again.
+(I think I made you up inside my head.)
+
+The stars go waltzing out in blue and red,
+And arbitrary blackness gallops in:
+I shut my eyes and all the world drops dead.
+
+I dreamed that you bewitched me into bed
+And sung me moon-struck, kissed me quite insane.
+(I think I made you up inside my head.)
+
+God topples from the sky, hell's fires fade:
+Exit seraphim and Satan's men:
+I shut my eyes and all the world drops dead.
+
+I fancied you'd return the way you said,
+But I grow old and I forget your name.
+(I think I made you up inside my head.)
+
+I should have loved a thunderbird instead;
+At least when spring comes they roar back again.
+I shut my eyes and all the world drops dead.
+(I think I made you up inside my head.)`,
+
+`Te amo... ¿por que me odias?
+por Rosalía de Castro
+
+—Te amo... ¿por qué me odias?
+—Te odio... ¿por qué me amas?
+Secreto es éste el más triste
+y misterioso del alma.
+ 
+Mas ello es verdad... ¡Verdad
+dura y atormentadora!
+—Me odias, porque te amo;
+te amo, porque me odias.`,
+
+`Poema 20
+por Pablo Neruda
+
+Puedo escribir los versos más tristes esta noche.
+
+Escribir, por ejemplo: «La noche está estrellada,
+y tiritan, azules, los astros, a lo lejos».
+
+El viento de la noche gira en el cielo y canta.
+
+Puedo escribir los versos más tristes esta noche.
+Yo la quise, y a veces ella también me quiso.
+
+En las noches como ésta la tuve entre mis brazos.
+La besé tantas veces bajo el cielo infinito.
+
+Ella me quiso, a veces yo también la quería.
+Cómo no haber amado sus grandes ojos fijos.
+
+Puedo escribir los versos más tristes esta noche.
+Pensar que no la tengo. Sentir que la he perdido.
+
+Oír la noche inmensa, más inmensa sin ella.
+Y el verso cae al alma como al pasto el rocío.
+
+Qué importa que mi amor no pudiera guardarla.
+La noche está estrellada y ella no está conmigo.
+
+Eso es todo. A lo lejos alguien canta. A lo lejos
+Mi alma no se contenta con haberla perdido.
+
+Como para acercarla mi mirada la busca.
+Mi corazón la busca, y ella no está conmigo.
+
+La misma noche que hace blanquear los mismos árboles.
+
+Nosotros, los de entonces, ya no somos los mismos.
+
+Ya no la quiero, es cierto, pero cuánto la quise.
+Mi voz buscaba el viento para tocar su oído.
+
+De otro. Será de otro. Como antes de mis besos.
+Su voz, su cuerpo claro. Sus ojos infinitos.
+
+Ya no la quiero, es cierto, pero tal vez la quiero.
+Es tan corto el amor, y es tan largo el olvido.
+
+Porque en noches como ésta la tuve entre mis brazos,
+mi alma no se contenta con haberla perdido.
+
+Aunque éste sea el último dolor que ella me causa,
+y estos sean los últimos versos que yo le escribo.`,
+
+`A su retrato
+por Sor Juana Inés de la Cruz
+
+Este que ves, engaño colorido,
+que, del arte ostentando los primores,
+con falsos silogismos de colores
+es cauteloso engaño del sentido;
+
+éste, en quien la lisonja ha pretendido
+excusar de los años los horrores,
+y venciendo del tiempo los rigores
+triunfar de la vejez y del olvido,
+
+es un vano artificio del cuidado,
+es una flor al viento delicada,
+es un resguardo inútil para el hado:
+
+es una necia diligencia errada,
+es un afán caduco y, bien mirado,
+es cadáver, es polvo, es sombra, es nada.`,
+
+`The Awakening
+by Kate Chopin
+
+The voice of the sea is seductive; never ceasing, whispering, clamoring, murmuring, inviting the soul to wander for a spell in abysses of solitude; to lose itself in mazes of inward contemplation. The voice of the sea speaks to the soul. The touch of the sea is sensuous, enfolding the body in its soft, close embrace.
+
+The water of the Gulf stretched out before her, gleaming with the million lights of the sun. The voice of the sea is seductive, never ceasing, whispering, clamoring, murmuring, inviting the soul to wander in abysses of solitude. All along the white beach, up and down, there was no living thing in sight. A bird with a broken wing was beating the air above, reeling, fluttering, circling disabled down, down to the water.`,
+
+`Maurice
+by E.M. Forster
+
+You do care a little for me, I know... but nothing to speak of, and you don't love me. I was yours once till death if you'd cared to keep me, but I'm someone else's now... and he's mine in a way that shocks you, but why don't you stop being shocked, and attend to your own happiness.
+
+After all, is not a real Hell better than a manufactured Heaven?
+
+I was yours once 'till death if you'd cared to keep me, but I'm someone else's now - I can't hang about whining forever - and he's mine in a way that shocks you, but why don't you stop being shocked, and attend to your own happiness?
+
+There has been, is, and always will be every conceivable type of person.`,
+
+`Their Eyes were Watching God
+by Nora Heale Hurston
+
+Love is lak de sea. It’s uh movin’ thing, but still and all, it takes its shape from de shore it meets, and it’s different with every shore.
+
+If you kin see de light at daybreak, you don't keer if you die at dusk. It's so many people never seen de light at all.
+
+Some people could look at a mud puddle and see an ocean with ships.
+
+She had waited all her life for something, and it had killed her when it found her.
+
+When God had made The Man, he made him out of stuff that sung all the time and glittered all over. Then after that some angels got jealous and chopped him into millions of pieces, but still he glittered and hummed. So they beat him down to nothing but sparks but each little spark had a shine and a song. So they covered each one over with mud. And the lonesomeness in the sparks make them hunt for one another, but the mud is deaf and dumb.`,
+
+`Not
+by Big Thief
+
+It's not the energy reeling
+Nor the lines in your face
+Nor the clouds on the ceiling
+Nor the clouds in space
+
+It's not the phone on the table
+Nor the bed in the earth
+Nor the bed in the stable
+Nor your stable words
+
+It's not the formless being
+Nor the cry in the air
+Nor the boy I'm seeing
+With her long black hair
+
+It's not the open weaving
+Nor the furnace glow
+Nor the blood of you bleeding
+As you try to let go
+
+It's not the room, not beginning
+Not the crowd, not winning
+Not the planet, not spinning
+Not a ruse, not heat
+Not the fire lapping up the creek
+Not food, not to eat
+
+Not the meat of your thigh
+Nor your spine tattoo
+Nor your shimmery eye
+Nor the wet of the dew
+
+It's not the warm illusion
+Nor the crack in the plate
+Nor the breath of confusion
+Nor the starkness of slate
+
+It's not the room, not beginning
+Not the crowd, not winning
+Not the planet, not spinning
+Not a ruse, not heat
+Not the fire lapping up the creek
+Not food, not to eat
+
+Not what you really wanted
+Nor the mess in your purse
+Nor the bed that is haunted
+With a blanket of thirst
+
+It's not the hunger revealing
+Nor the ricochet in the cave
+Nor the hand that is healing
+Nor the nameless grave
+
+It's not the room, not beginning
+Not the crowd, not winning
+Not the planet, not spinning
+Not a ruse, not heat
+Not the fire lapping up the creek
+Not food, not to eat
+
+Not to die, not dying
+Not to laugh, not lying
+Not the vacant wilderness vying
+Not the room, not beginning
+Not the crowd, not winning
+Not the planet, not spinning`,
+
+`Just Kids
+by Patti Smith
+
+Yet you could feel a vibration in the air, a sense of hastening. It had started with the moon, inaccessible poem that it was. Now men had walked upon it, rubber treads on a pearl of the gods. Perhaps it was an awareness of time passing, the last summer of the decade. Sometimes I just wanted to raise my hands and stop. But stop what? Maybe just growing up.
+
+Death comes sweeping down the hallway in a lady's dress
+Death comes riding up the highway in its Sunday best
+Death comes I can't do nothing
+Death goes there must be something that remains
+A fire of unknown origin took my baby away
+
+When you hit a wall, just kick it in.`,
+
+`Call Me By Your Name
+by André Aciman
+
+Was he my home, then, my homecoming? You are my homecoming,
+
+That steely look of yours, Oliver, I'd rather die than face it once I've told you.
+
+If he knew, if he only knew that I was giving him every change to put two and two together and come up with a number bigger than infinity.
+
+We had the stars, you and I. And this is given once only.
+
+Is it better to speak or die?`,
+
+`A Little Life
+by Hanya Yanagihara
+
+And so I try to be kind to everything I see, and in everything I see, I see him.
+
+Things get broken, and sometimes they get repaired, and in most cases, you realize that no matter what gets damaged, life rearranges itself to compensate for your loss, sometimes wonderfully.
+
+What he knew, he knew from books, and books lied, they made things prettier.
+
+"And who are you?"
+"I'm Willem Ragnarsson. And I will never let you go.”`,
+
+`How It Feels To Be Colored Me
+by Zora Neal Hurston
+
+I feel most colored when I am thrown against a sharp white background.
+
+"Beside the waters of the Hudson" I feel my race. Among the thousand white persons, I am a dark rock surged upon, and overswept, but through it all, I remain myself. When covered by the waters, I am; and the ebb but reveals me again.
+
+The cosmic Zora emerges. I belong to no race nor time. I am the eternal feminine with its string of beads.`,
+
+`Sufi Proverb
+
+In the desert there is no sign that says, "Thou shalt not eat stones"`,
+
+`Miss Modular
+by Sterolab
+
+Sur la boîte cartonnée un trompe-l'œil
+Avoue volontiers qu'il est trompe-l'œil
+Sur la boîte cartonnée un trompe-l'œil
+Avoue volontiers qu'il est trompe-l'œil
+
+Donne l'idée du jeu et du mystère
+Un spectacle intime donne l'idée du jeu et de l'humour
+Spectacle qui rime, qui suscite dans les yeux un éclair
+Une découverte, une idée qui peut jouer des tours
+Une muse, certes, donne l'idée du jeu et du mystère
+Un spectacle intime
+
+Sur la boîte cartonnée un trompe-l'œil
+Avoue volontiers qu'il est trompe-l'œil
+Sur la boîte cartonnée un trompe-l'œil
+Avoue volontiers qu'il est trompe-l'œil`,
+
+`Greek Proverb
+
+Know thyself`
+];
+
+/* =====================================================
+   THREE SETUP
+   ===================================================== */
+const canvas = document.getElementById("c");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 0.2, 4.5);
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+dir.position.set(3, 4, 5);
+scene.add(dir);
+
+const group = new THREE.Group();
+scene.add(group);
+
+/* =====================================================
+   POLYHEDRON
+   ===================================================== */
+const base = new THREE.IcosahedronGeometry(1, 1);
+rounderInflate(base);
+base.computeVertexNormals();
+
+const coloredGeo = base.toNonIndexed();
+applyFaceColors(coloredGeo);
+
+const mesh = new THREE.Mesh(
+  coloredGeo,
+  new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    flatShading: true,
+    roughness: 0.75
+  })
+);
+// ====== STEM (NON-INTERACTIVE) ======
+const stemGroup = new THREE.Group();
+group.add(stemGroup);
+
+// --- Stem geometry (simple angular prism) ---
+const stemHeight = 0.9;
+const stemRadius = 0.05;
+
+const stemGeo = new THREE.CylinderGeometry(
+  stemRadius,
+  stemRadius * 1.1,
+  stemHeight,
+  6,       // low radial segments = angular
+  1,
+  true
+);
+
+const stemMat = new THREE.MeshStandardMaterial({
+  color: 0x2f6f3e, // dark green
+  flatShading: true,
+  roughness: 0.8
+});
+
+const stemMesh = new THREE.Mesh(stemGeo, stemMat);
+
+// Position stem on top of polygon
+stemMesh.position.y = 1.25; // 🔧 adjust if needed
+stemGroup.add(stemMesh);
+
+// --- Optional stem edges (matches polygon style) ---
+const stemEdges = new THREE.EdgesGeometry(stemGeo, 20);
+const stemLines = new THREE.LineSegments(
+  stemEdges,
+  new THREE.LineBasicMaterial({ color: 0x1f4f2e })
+);
+stemLines.position.copy(stemMesh.position);
+stemGroup.add(stemLines);
+
+// ====== ANGULAR LEAF ======
+
+// Leaf geometry (flat, faceted)
+const leafGeo = new THREE.BufferGeometry();
+
+// Simple angular leaf shape (2 triangles)
+const leafVertices = new Float32Array([
+   0.0,  0.0,  0.0,
+   0.35, 0.15, 0.0,
+   0.1,  0.45, 0.0,
+
+   0.0,  0.0,  0.0,
+   0.1,  0.45, 0.0,
+  -0.2,  0.2,  0.0
+]);
+
+leafGeo.setAttribute("position", new THREE.BufferAttribute(leafVertices, 3));
+leafGeo.computeVertexNormals();
+
+const leafMat = new THREE.MeshStandardMaterial({
+  color: 0x3fa34d,
+  flatShading: true,
+  side: THREE.DoubleSide
+});
+
+const leafMesh = new THREE.Mesh(leafGeo, leafMat);
+
+// Position leaf near top of stem
+leafMesh.position.set(0.12, 1.45, 0);
+leafMesh.rotation.z = -0.4;
+
+stemGroup.add(leafMesh);
+
+// Leaf edges
+const leafEdges = new THREE.EdgesGeometry(leafGeo, 20);
+const leafLines = new THREE.LineSegments(
+  leafEdges,
+  new THREE.LineBasicMaterial({ color: 0x2b7a3d })
+);
+leafLines.position.copy(leafMesh.position);
+leafLines.rotation.copy(leafMesh.rotation);
+stemGroup.add(leafLines);
+
+group.add(mesh);
+
+const edges = new THREE.LineSegments(
+  new THREE.EdgesGeometry(coloredGeo, 15),
+  new THREE.LineBasicMaterial({ color: 0x000000 })
+);
+group.add(edges);
+
+/* =====================================================
+   FLUSH VERTEX POINTS
+   ===================================================== */
+const raycaster = new THREE.Raycaster();
+raycaster.params.Points.threshold = 0.06;
+const mouse = new THREE.Vector2();
+const infoBox = document.getElementById("infoBox");
+
+const vertices = getUniqueVertices(base);
+const positions = new Float32Array(vertices.length * 3);
+vertices.forEach((v, i) => {
+  positions[i * 3] = v.x;
+  positions[i * 3 + 1] = v.y;
+  positions[i * 3 + 2] = v.z;
+});
+
+const points = new THREE.Points(
+  new THREE.BufferGeometry().setAttribute(
+    "position",
+    new THREE.BufferAttribute(positions, 3)
+  ),
+  new THREE.PointsMaterial({
+    color: 0x111111,
+    size: 4.5,
+    sizeAttenuation: false
+  })
+);
+group.add(points);
+
+/* =====================================================
+   CLICK HANDLER
+   ===================================================== */
+window.addEventListener("click", (e) => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const hit = raycaster.intersectObject(points);
+
+  if (hit.length) {
+    const idx = hit[0].index;
+    infoBox.style.display = "block";
+    infoBox.style.left = e.clientX + 12 + "px";
+    infoBox.style.top = e.clientY + 12 + "px";
+    infoBox.textContent = vertexLabels[idx] ?? `Vertex ${idx + 1}`;
+  } else {
+    infoBox.style.display = "none";
+  }
+});
+
+/* =====================================================
+   ANIMATE
+   ===================================================== */
+function animate() {
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+animate();
+// Auto-hide instructions after 6 seconds
+setTimeout(() => {
+  const box = document.getElementById("instructionBox");
+  if (box) box.style.display = "none";
+}, 10000);
+
+
+/* =====================================================
+   HELPERS
+   ===================================================== */
+function rounderInflate(geo) {
+  const pos = geo.getAttribute("position");
+  const v = new THREE.Vector3();
+
+  for (let i = 0; i < pos.count; i++) {
+    v.set(pos.getX(i), pos.getY(i), pos.getZ(i));
+    const sphere = v.clone().normalize().multiplyScalar(v.length() * 1.05);
+    v.lerp(sphere, 0.65);
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  pos.needsUpdate = true;
+}
+
+function applyFaceColors(geo) {
+  const pos = geo.getAttribute("position");
+  const colors = new Float32Array(pos.count * 3);
+  const c = new THREE.Color();
+
+  for (let i = 0; i < pos.count; i += 3) {
+  // orange peel-ish range
+  // subtle per-face randomness (still orange 🍊)
+const hue   = 0.06 + (Math.random() - 0.5) * 0.01;  // ~0.055–0.065
+const sat   = 0.95 + Math.random() * 0.05;          // 0.95–1.00
+const light = 0.45 + (Math.random() - 0.5) * 0.08;  // ~0.41–0.49 (rich)
+c.setHSL(hue, sat, light);
+
+
+  c.setHSL(hue, sat, light);
+
+  for (let k = 0; k < 3; k++) {
+    colors[(i + k) * 3]     = c.r;
+    colors[(i + k) * 3 + 1] = c.g;
+    colors[(i + k) * 3 + 2] = c.b;
+  }
+}
+
+  geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+}
+
+function getUniqueVertices(geo) {
+  const pos = geo.getAttribute("position");
+  const out = [];
+  const seen = new Set();
+
+  for (let i = 0; i < pos.count; i++) {
+    const key = `${pos.getX(i).toFixed(6)},${pos.getY(i).toFixed(6)},${pos.getZ(i).toFixed(6)}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push(new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i)));
+    }
+  }
+  return out;
+}
+</script>
+</body>
+</html>
